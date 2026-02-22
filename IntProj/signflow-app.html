@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SignFlow — Document Signature App</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f0e0c;
+  --surface: #181715;
+  --surface2: #211f1c;
+  --surface3: #2a2825;
+  --border: #333028;
+  --border2: #403d38;
+  --gold: #c9a84c;
+  --gold2: #e8c96a;
+  --gold-dim: #c9a84c22;
+  --cream: #f5f0e8;
+  --text: #e8e3d8;
+  --muted: #8a8070;
+  --danger: #e05252;
+  --success: #52c278;
+  --blue: #5b8dee;
+  --r: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 999px; }
+
+/* ===== LAYOUT ===== */
+#app { display: flex; flex-direction: column; height: 100vh; }
+.page { display: none; flex-direction: column; height: 100vh; }
+.page.active { display: flex; }
+
+/* ===== AUTH PAGES ===== */
+.auth-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: 100vh;
+}
+.auth-left {
+  background: linear-gradient(145deg, #1a1712 0%, #0f0e0c 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4rem;
+  position: relative;
+  overflow: hidden;
+}
+.auth-left::before {
+  content: '';
+  position: absolute;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, var(--gold-dim) 0%, transparent 70%);
+  top: -100px; left: -100px;
+  pointer-events: none;
+}
+.auth-left::after {
+  content: '';
+  position: absolute;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, #5b8dee11 0%, transparent 70%);
+  bottom: -80px; right: -80px;
+  pointer-events: none;
+}
+.logo-mark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 3rem;
+}
+.logo-icon {
+  width: 36px; height: 36px;
+  background: var(--gold);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.logo-text {
+  font-family: 'Fraunces', serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--cream);
+  letter-spacing: -0.02em;
+}
+.auth-hero h1 {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(2rem, 3.5vw, 3rem);
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--cream);
+  margin-bottom: 1.25rem;
+  letter-spacing: -0.02em;
+}
+.auth-hero h1 em { color: var(--gold); font-style: normal; }
+.auth-hero p { color: var(--muted); font-size: 0.92rem; max-width: 340px; line-height: 1.7; }
+.auth-features { margin-top: 2.5rem; display: flex; flex-direction: column; gap: 0.9rem; }
+.auth-feature {
+  display: flex; align-items: center; gap: 0.75rem;
+  font-size: 0.82rem; color: #a09080;
+}
+.auth-feature-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  flex-shrink: 0;
+}
+
+.auth-right {
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+}
+.auth-form-box {
+  width: 100%;
+  max-width: 380px;
+}
+.auth-form-title {
+  font-family: 'Fraunces', serif;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--cream);
+  margin-bottom: 0.4rem;
+  letter-spacing: -0.02em;
+}
+.auth-form-sub { color: var(--muted); font-size: 0.85rem; margin-bottom: 2rem; }
+
+/* FORM ELEMENTS */
+.field { margin-bottom: 1.1rem; }
+.field label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #a09080;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+.field input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  border-radius: var(--r);
+  padding: 0.7rem 1rem;
+  font-family: inherit;
+  font-size: 0.92rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.field input:focus { border-color: var(--gold); }
+.field input::placeholder { color: var(--muted); opacity: 0.6; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  padding: 0.7rem 1.5rem;
+  border: none; border-radius: var(--r);
+  font-family: inherit; font-size: 0.88rem; font-weight: 600;
+  cursor: pointer; transition: all 0.15s;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn-gold {
+  background: var(--gold);
+  color: #1a1510;
+}
+.btn-gold:hover { background: var(--gold2); transform: translateY(-1px); }
+.btn-ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border2);
+}
+.btn-ghost:hover { color: var(--text); border-color: var(--border2); background: var(--surface2); }
+.btn-danger { background: #e0525222; color: var(--danger); border: 1px solid #e0525233; }
+.btn-danger:hover { background: #e0525233; }
+.btn-sm { padding: 0.4rem 0.9rem; font-size: 0.78rem; }
+.btn-full { width: 100%; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+.auth-switch { margin-top: 1.5rem; text-align: center; font-size: 0.82rem; color: var(--muted); }
+.auth-switch a { color: var(--gold); cursor: pointer; text-decoration: none; font-weight: 500; }
+
+/* ===== APP SHELL ===== */
+.shell { display: flex; flex: 1; overflow: hidden; }
+
+/* SIDEBAR */
+.sidebar {
+  width: 220px;
+  min-width: 220px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 0;
+}
+.sidebar-logo {
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1rem;
+}
+.sidebar-logo-icon {
+  width: 28px; height: 28px;
+  background: var(--gold);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.sidebar-logo-text {
+  font-family: 'Fraunces', serif;
+  font-size: 1.1rem; font-weight: 700;
+  color: var(--cream);
+}
+.nav-item {
+  display: flex; align-items: center; gap: 0.65rem;
+  padding: 0.6rem 1.25rem;
+  color: var(--muted);
+  font-size: 0.85rem; font-weight: 500;
+  cursor: pointer;
+  border-radius: 0;
+  transition: all 0.15s;
+  margin: 0 0.5rem;
+  border-radius: 6px;
+}
+.nav-item:hover { color: var(--text); background: var(--surface2); }
+.nav-item.active { color: var(--gold); background: var(--gold-dim); }
+.nav-icon { font-size: 1rem; width: 18px; text-align: center; }
+.sidebar-bottom {
+  margin-top: auto;
+  padding: 1rem;
+  border-top: 1px solid var(--border);
+}
+.user-chip {
+  display: flex; align-items: center; gap: 0.6rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.user-chip:hover { background: var(--surface2); }
+.user-avatar {
+  width: 30px; height: 30px;
+  background: var(--gold-dim);
+  border: 1px solid var(--gold);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem; font-weight: 700;
+  color: var(--gold);
+  flex-shrink: 0;
+}
+.user-name { font-size: 0.8rem; font-weight: 600; color: var(--text); }
+.user-email { font-size: 0.7rem; color: var(--muted); }
+
+/* MAIN CONTENT */
+.content { flex: 1; overflow-y: auto; background: var(--bg); }
+.content-header {
+  padding: 1.75rem 2rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.page-title {
+  font-family: 'Fraunces', serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--cream);
+  letter-spacing: -0.02em;
+}
+.page-sub { color: var(--muted); font-size: 0.82rem; margin-top: 0.2rem; }
+.content-body { padding: 1.5rem 2rem 2rem; }
+
+/* ===== DASHBOARD CARDS ===== */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.75rem; }
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 1.25rem;
+}
+.stat-label { font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem; }
+.stat-value {
+  font-family: 'Fraunces', serif;
+  font-size: 2rem; font-weight: 600;
+  color: var(--cream);
+  line-height: 1;
+}
+.stat-change { font-size: 0.72rem; color: var(--success); margin-top: 0.4rem; }
+
+/* ===== DOCUMENT TABLE ===== */
+.doc-table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+.doc-table-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.doc-table-title { font-weight: 600; color: var(--cream); font-size: 0.92rem; }
+table { width: 100%; border-collapse: collapse; }
+th {
+  text-align: left;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+}
+td {
+  padding: 0.9rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.84rem;
+  vertical-align: middle;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--surface2); }
+.doc-name { font-weight: 600; color: var(--cream); display: flex; align-items: center; gap: 0.5rem; }
+.doc-icon { font-size: 1rem; }
+
+/* STATUS BADGES */
+.status {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.7rem; font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.status-dot { width: 5px; height: 5px; border-radius: 50%; }
+.status-draft { background: #ffffff12; color: #a09080; }
+.status-draft .status-dot { background: #a09080; }
+.status-sent { background: #5b8dee18; color: var(--blue); }
+.status-sent .status-dot { background: var(--blue); }
+.status-signed { background: #52c27818; color: var(--success); }
+.status-signed .status-dot { background: var(--success); }
+.status-expired { background: #e0525218; color: var(--danger); }
+.status-expired .status-dot { background: var(--danger); }
+
+.table-actions { display: flex; gap: 0.4rem; align-items: center; }
+
+/* ===== UPLOAD ZONE ===== */
+.upload-section { max-width: 560px; }
+.upload-zone {
+  border: 2px dashed var(--border2);
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--surface);
+  position: relative;
+}
+.upload-zone:hover, .upload-zone.drag-over {
+  border-color: var(--gold);
+  background: var(--gold-dim);
+}
+.upload-zone input[type="file"] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%;
+}
+.upload-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+.upload-title { font-weight: 600; color: var(--cream); margin-bottom: 0.4rem; }
+.upload-sub { font-size: 0.8rem; color: var(--muted); }
+.upload-limit { font-size: 0.72rem; color: #6a6055; margin-top: 0.75rem; }
+
+/* ===== SIGN PAGE ===== */
+.sign-layout { display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; height: calc(100vh - 140px); }
+.pdf-viewer-area {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.pdf-toolbar {
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  padding: 0.75rem 1rem;
+  display: flex; align-items: center; gap: 1rem;
+}
+.pdf-page-nav { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: var(--muted); }
+.pdf-page-nav button {
+  background: var(--surface3); border: 1px solid var(--border2); color: var(--text);
+  border-radius: 4px; padding: 0.2rem 0.6rem; cursor: pointer; font-size: 0.8rem;
+}
+.pdf-canvas-wrap {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 1.5rem;
+  position: relative;
+}
+.pdf-mock {
+  width: 100%;
+  max-width: 550px;
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 8px 40px #00000066;
+  position: relative;
+  padding: 3rem;
+  color: #333;
+  font-family: Georgia, serif;
+  font-size: 13px;
+  line-height: 1.8;
+  min-height: 700px;
+  cursor: crosshair;
+  user-select: none;
+}
+.pdf-mock h2 { font-size: 18px; margin-bottom: 1rem; color: #111; text-align: center; }
+.pdf-mock p { margin-bottom: 1rem; }
+.pdf-mock .sig-line {
+  border-bottom: 1px solid #333;
+  margin-top: 3rem;
+  padding-top: 0.25rem;
+  font-size: 11px;
+  color: #666;
+  display: flex; justify-content: space-between;
+}
+
+/* SIGNATURE FIELD ON PDF */
+.sig-field {
+  position: absolute;
+  border: 2px dashed var(--gold);
+  background: rgba(201, 168, 76, 0.08);
+  border-radius: 4px;
+  cursor: move;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; color: var(--gold);
+  font-weight: 600;
+  user-select: none;
+  transition: background 0.15s;
+}
+.sig-field:hover { background: rgba(201, 168, 76, 0.15); }
+.sig-field.filled { border-style: solid; border-color: var(--success); background: rgba(82, 194, 120, 0.1); }
+.sig-field img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+
+/* SIGN PANEL */
+.sign-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.sign-panel-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600; font-size: 0.9rem; color: var(--cream);
+}
+.sign-panel-body { flex: 1; overflow-y: auto; padding: 1.25rem; }
+
+.sig-tabs { display: flex; gap: 0.25rem; margin-bottom: 1rem; background: var(--surface2); padding: 0.25rem; border-radius: 6px; }
+.sig-tab {
+  flex: 1; padding: 0.45rem; border: none; background: none;
+  color: var(--muted); font-family: inherit; font-size: 0.78rem; font-weight: 600;
+  cursor: pointer; border-radius: 4px; transition: all 0.15s;
+}
+.sig-tab.active { background: var(--surface3); color: var(--text); }
+
+/* CANVAS */
+#sig-canvas {
+  width: 100%;
+  height: 140px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  cursor: crosshair;
+  display: block;
+}
+#typed-sig {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 0.75rem;
+  color: var(--text);
+  font-family: 'Fraunces', serif;
+  font-size: 1.5rem;
+  text-align: center;
+  outline: none;
+}
+#typed-sig:focus { border-color: var(--gold); }
+.typed-preview {
+  margin-top: 0.5rem;
+  background: white;
+  border-radius: 4px;
+  padding: 0.75rem;
+  text-align: center;
+  font-family: 'Fraunces', serif;
+  font-size: 1.8rem;
+  color: #1a1510;
+  min-height: 60px;
+}
+
+/* STEP INDICATOR */
+.steps { display: flex; gap: 0; margin-bottom: 1.25rem; }
+.step {
+  flex: 1; padding: 0.5rem; text-align: center;
+  font-size: 0.7rem; font-weight: 600; color: var(--muted);
+  border-bottom: 2px solid var(--border);
+  letter-spacing: 0.05em;
+}
+.step.active { color: var(--gold); border-bottom-color: var(--gold); }
+.step.done { color: var(--success); border-bottom-color: var(--success); }
+
+/* ===== AUDIT LOG ===== */
+.timeline { display: flex; flex-direction: column; gap: 0; }
+.timeline-item {
+  display: flex; gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+.timeline-item:last-child { border-bottom: none; }
+.timeline-dot-col {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 0; padding-top: 2px;
+}
+.timeline-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--gold); flex-shrink: 0;
+  border: 2px solid var(--bg);
+  box-shadow: 0 0 0 2px var(--gold);
+}
+.timeline-dot.blue { background: var(--blue); box-shadow: 0 0 0 2px var(--blue); }
+.timeline-dot.green { background: var(--success); box-shadow: 0 0 0 2px var(--success); }
+.timeline-dot.red { background: var(--danger); box-shadow: 0 0 0 2px var(--danger); }
+.timeline-line {
+  flex: 1; width: 1px; background: var(--border); margin-top: 4px;
+}
+.timeline-body { flex: 1; }
+.timeline-event { font-weight: 600; font-size: 0.85rem; color: var(--cream); margin-bottom: 0.2rem; }
+.timeline-detail { font-size: 0.78rem; color: var(--muted); }
+.timeline-meta { font-size: 0.7rem; color: #6a6055; margin-top: 0.4rem; display: flex; gap: 1rem; }
+
+/* MODAL */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 100;
+  background: #00000088;
+  backdrop-filter: blur(4px);
+  align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 2rem;
+  width: 460px;
+  max-width: 90vw;
+  animation: modalIn 0.2s ease;
+}
+@keyframes modalIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.modal-title {
+  font-family: 'Fraunces', serif;
+  font-size: 1.2rem; font-weight: 600;
+  color: var(--cream);
+  margin-bottom: 0.4rem;
+}
+.modal-sub { color: var(--muted); font-size: 0.82rem; margin-bottom: 1.5rem; }
+.modal-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem; }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 200;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-left: 3px solid var(--gold);
+  border-radius: 8px;
+  padding: 0.9rem 1.25rem;
+  font-size: 0.84rem;
+  color: var(--text);
+  box-shadow: 0 8px 30px #00000066;
+  transform: translateY(10px); opacity: 0;
+  transition: all 0.25s;
+  pointer-events: none;
+  min-width: 260px;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { border-left-color: var(--success); }
+.toast.error { border-left-color: var(--danger); }
+
+/* EMPTY STATE */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--muted);
+}
+.empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+.empty-title { font-weight: 600; color: var(--text); margin-bottom: 0.5rem; }
+.empty-sub { font-size: 0.82rem; max-width: 280px; margin: 0 auto 1.5rem; line-height: 1.6; }
+
+/* DIVIDER */
+.divider { height: 1px; background: var(--border); margin: 1.25rem 0; }
+
+/* GRID */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+/* ERROR MSG */
+.error-msg { color: var(--danger); font-size: 0.8rem; margin-top: 0.75rem; text-align: center; display: none; }
+.error-msg.show { display: block; }
+
+/* LOADING */
+.spinner {
+  width: 16px; height: 16px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ======================== LOGIN PAGE ======================== -->
+  <div id="page-login" class="page active">
+    <div class="auth-wrap">
+      <div class="auth-left">
+        <div class="logo-mark">
+          <div class="logo-icon">✍️</div>
+          <span class="logo-text">SignFlow</span>
+        </div>
+        <div class="auth-hero">
+          <h1>Documents signed.<br><em>Legally.</em> Instantly.</h1>
+          <p>Upload any PDF, place signature fields, share a secure link, and get a signed, audit-ready document in minutes.</p>
+        </div>
+        <div class="auth-features">
+          <div class="auth-feature"><span class="auth-feature-dot"></span>Drag-and-drop signature placement</div>
+          <div class="auth-feature"><span class="auth-feature-dot"></span>Immutable signed PDFs with audit trail</div>
+          <div class="auth-feature"><span class="auth-feature-dot"></span>One-click signing links for anyone</div>
+          <div class="auth-feature"><span class="auth-feature-dot"></span>Full compliance event log</div>
+        </div>
+      </div>
+      <div class="auth-right">
+        <div class="auth-form-box">
+          <div class="auth-form-title">Welcome back</div>
+          <div class="auth-form-sub">Sign in to your SignFlow account</div>
+          <div class="field">
+            <label>Email</label>
+            <input type="email" id="login-email" placeholder="jane@company.com" value="demo@signflow.com">
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <input type="password" id="login-password" placeholder="••••••••" value="password123">
+          </div>
+          <div class="error-msg" id="login-error">Invalid email or password</div>
+          <button class="btn btn-gold btn-full" style="margin-top:1rem" onclick="doLogin()">
+            Sign In
+          </button>
+          <div class="auth-switch">Don't have an account? <a onclick="showPage('page-register')">Create one</a></div>
+          <div class="divider"></div>
+          <div style="font-size:0.75rem;color:var(--muted);text-align:center">
+            Demo credentials pre-filled · No backend required for this preview
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================== REGISTER PAGE ======================== -->
+  <div id="page-register" class="page">
+    <div class="auth-wrap">
+      <div class="auth-left">
+        <div class="logo-mark">
+          <div class="logo-icon">✍️</div>
+          <span class="logo-text">SignFlow</span>
+        </div>
+        <div class="auth-hero">
+          <h1>Start signing<br><em>smarter</em> today.</h1>
+          <p>Join thousands of teams using SignFlow to replace paper-based signing with secure, traceable digital workflows.</p>
+        </div>
+      </div>
+      <div class="auth-right">
+        <div class="auth-form-box">
+          <div class="auth-form-title">Create account</div>
+          <div class="auth-form-sub">Free to start. No credit card required.</div>
+          <div class="field">
+            <label>Full Name</label>
+            <input type="text" id="reg-name" placeholder="Jane Doe">
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <input type="email" id="reg-email" placeholder="jane@company.com">
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <input type="password" id="reg-password" placeholder="Min 8 characters">
+          </div>
+          <div class="error-msg" id="reg-error"></div>
+          <button class="btn btn-gold btn-full" style="margin-top:1rem" onclick="doRegister()">Create Account</button>
+          <div class="auth-switch">Already have an account? <a onclick="showPage('page-login')">Sign in</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================== MAIN APP ======================== -->
+  <div id="page-app" class="page">
+    <div class="shell">
+
+      <!-- SIDEBAR -->
+      <div class="sidebar">
+        <div class="sidebar-logo">
+          <div class="sidebar-logo-icon">✍️</div>
+          <span class="sidebar-logo-text">SignFlow</span>
+        </div>
+
+        <div class="nav-item active" onclick="switchView('dashboard')" id="nav-dashboard">
+          <span class="nav-icon">📋</span> Dashboard
+        </div>
+        <div class="nav-item" onclick="switchView('upload')" id="nav-upload">
+          <span class="nav-icon">⬆️</span> Upload
+        </div>
+        <div class="nav-item" onclick="switchView('sign')" id="nav-sign">
+          <span class="nav-icon">✍️</span> Sign Document
+        </div>
+        <div class="nav-item" onclick="switchView('audit')" id="nav-audit">
+          <span class="nav-icon">📜</span> Audit Log
+        </div>
+
+        <div class="sidebar-bottom">
+          <div class="user-chip" onclick="doLogout()">
+            <div class="user-avatar" id="user-avatar">JD</div>
+            <div>
+              <div class="user-name" id="user-display-name">Jane Doe</div>
+              <div class="user-email" id="user-display-email">jane@company.com</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONTENT -->
+      <div class="content" id="main-content">
+
+        <!-- DASHBOARD VIEW -->
+        <div id="view-dashboard">
+          <div class="content-header">
+            <div>
+              <div class="page-title">Dashboard</div>
+              <div class="page-sub">Overview of your document activity</div>
+            </div>
+            <button class="btn btn-gold btn-sm" onclick="switchView('upload')">+ Upload PDF</button>
+          </div>
+          <div class="content-body">
+            <div class="stats-row">
+              <div class="stat-card">
+                <div class="stat-label">Total Docs</div>
+                <div class="stat-value" id="stat-total">4</div>
+                <div class="stat-change">↑ 2 this week</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Awaiting Signature</div>
+                <div class="stat-value" id="stat-pending" style="color:var(--blue)">1</div>
+                <div class="stat-change" style="color:var(--muted)">Sent out</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Signed</div>
+                <div class="stat-value" id="stat-signed" style="color:var(--success)">2</div>
+                <div class="stat-change">↑ 1 this week</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Drafts</div>
+                <div class="stat-value" id="stat-drafts" style="color:var(--muted)">1</div>
+                <div class="stat-change" style="color:var(--muted)">Ready to send</div>
+              </div>
+            </div>
+
+            <div class="doc-table-wrap">
+              <div class="doc-table-header">
+                <span class="doc-table-title">Recent Documents</span>
+                <span style="font-size:0.75rem;color:var(--muted)" id="doc-count">4 documents</span>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Document</th>
+                    <th>Status</th>
+                    <th>Signer</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="doc-table-body">
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- UPLOAD VIEW -->
+        <div id="view-upload" style="display:none">
+          <div class="content-header">
+            <div>
+              <div class="page-title">Upload Document</div>
+              <div class="page-sub">Upload a PDF to start the signing process</div>
+            </div>
+          </div>
+          <div class="content-body">
+            <div class="upload-section">
+              <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+                <input type="file" id="file-input" accept=".pdf" onchange="handleFileSelect(event)">
+                <div class="upload-icon">📄</div>
+                <div class="upload-title">Drop your PDF here</div>
+                <div class="upload-sub">or click to browse files</div>
+                <div class="upload-limit">Maximum file size: 10MB · PDF only</div>
+              </div>
+
+              <div id="upload-preview" style="display:none; margin-top:1.5rem;">
+                <div class="doc-table-wrap">
+                  <div style="padding:1.25rem 1.5rem; display:flex; align-items:center; gap:1rem;">
+                    <div style="font-size:2rem">📄</div>
+                    <div style="flex:1">
+                      <div style="font-weight:600;color:var(--cream)" id="preview-filename"></div>
+                      <div style="font-size:0.78rem;color:var(--muted)" id="preview-size"></div>
+                    </div>
+                    <button class="btn btn-ghost btn-sm" onclick="clearUpload()">✕ Remove</button>
+                  </div>
+                </div>
+                <div style="margin-top:1rem">
+                  <div class="field">
+                    <label>Document Title (optional)</label>
+                    <input type="text" id="doc-title" placeholder="e.g. Employment Contract — Q4 2025">
+                  </div>
+                  <button class="btn btn-gold" onclick="uploadDocument()" id="upload-btn">
+                    Upload & Continue to Sign →
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SIGN VIEW -->
+        <div id="view-sign" style="display:none">
+          <div class="content-header">
+            <div>
+              <div class="page-title">Sign Document</div>
+              <div class="page-sub">Draw, type, or place your signature on the PDF</div>
+            </div>
+            <div style="display:flex;gap:0.5rem">
+              <button class="btn btn-ghost btn-sm" onclick="openSendLinkModal()">📤 Send Link</button>
+              <button class="btn btn-gold btn-sm" onclick="finalizeDocument()" id="finalize-btn">✓ Finalize & Download</button>
+            </div>
+          </div>
+          <div class="content-body" style="padding-top:1rem">
+
+            <!-- Steps -->
+            <div class="steps" style="margin-bottom:1.25rem">
+              <div class="step done" id="step1">1 · Upload</div>
+              <div class="step active" id="step2">2 · Place Fields</div>
+              <div class="step" id="step3">3 · Sign</div>
+              <div class="step" id="step4">4 · Finalize</div>
+            </div>
+
+            <div class="sign-layout">
+              <!-- PDF Viewer -->
+              <div class="pdf-viewer-area">
+                <div class="pdf-toolbar">
+                  <span style="font-size:0.8rem;color:var(--muted);font-weight:600" id="pdf-doc-name">📄 Document.pdf</span>
+                  <div class="pdf-page-nav" style="margin-left:auto">
+                    <button onclick="prevPage()">‹</button>
+                    <span id="page-indicator">Page 1 of 1</span>
+                    <button onclick="nextPage()">›</button>
+                  </div>
+                  <span style="font-size:0.75rem;color:var(--muted)">Click PDF to place signature field</span>
+                </div>
+                <div class="pdf-canvas-wrap" id="pdf-canvas-wrap" onclick="placeSigField(event)">
+                  <div class="pdf-mock" id="pdf-mock">
+                    <h2>EMPLOYMENT AGREEMENT</h2>
+                    <p>This Employment Agreement ("Agreement") is entered into as of January 1, 2025, between <strong>Acme Corporation</strong> ("Employer") and the undersigned employee ("Employee").</p>
+                    <p><strong>1. Position.</strong> Employee agrees to serve in the role of Software Engineer. Employee's primary responsibilities shall include software development, code review, and technical collaboration.</p>
+                    <p><strong>2. Compensation.</strong> Employer agrees to pay Employee a base salary of $120,000 USD per annum, payable in bi-weekly installments, subject to all applicable tax withholdings.</p>
+                    <p><strong>3. Confidentiality.</strong> Employee acknowledges and agrees that during the course of employment, Employee will have access to confidential and proprietary information of Employer. Employee agrees to maintain strict confidentiality.</p>
+                    <p><strong>4. Term.</strong> This Agreement shall commence on January 1, 2025 and shall continue unless terminated by either party upon thirty (30) days written notice.</p>
+                    <p><strong>5. Governing Law.</strong> This Agreement shall be governed by and construed in accordance with the laws of the State of California.</p>
+                    <div class="sig-line">
+                      <span>Employee Signature ________________</span>
+                      <span>Date ________________</span>
+                    </div>
+                  </div>
+                  <!-- Signature fields rendered here -->
+                </div>
+              </div>
+
+              <!-- Sign Panel -->
+              <div class="sign-panel">
+                <div class="sign-panel-header">✍️ Signature</div>
+                <div class="sign-panel-body">
+                  <p style="font-size:0.78rem;color:var(--muted);margin-bottom:1rem">
+                    1. Create your signature below<br>2. Click anywhere on the document to place it
+                  </p>
+
+                  <div class="sig-tabs">
+                    <button class="sig-tab active" onclick="switchSigTab('draw')">✏️ Draw</button>
+                    <button class="sig-tab" onclick="switchSigTab('type')">T Type</button>
+                  </div>
+
+                  <!-- Draw Tab -->
+                  <div id="sig-draw-tab">
+                    <canvas id="sig-canvas" width="280" height="140"></canvas>
+                    <div style="display:flex;gap:0.5rem;margin-top:0.5rem">
+                      <button class="btn btn-ghost btn-sm" onclick="clearCanvas()">Clear</button>
+                      <button class="btn btn-gold btn-sm" onclick="captureSignature()" style="flex:1">Use This Signature</button>
+                    </div>
+                  </div>
+
+                  <!-- Type Tab -->
+                  <div id="sig-type-tab" style="display:none">
+                    <input type="text" id="typed-sig" placeholder="Type your name..." oninput="updateTypedPreview(this.value)">
+                    <div class="typed-preview" id="typed-preview">Your Name</div>
+                    <button class="btn btn-gold btn-sm btn-full" style="margin-top:0.5rem" onclick="captureTypedSignature()">Use This Signature</button>
+                  </div>
+
+                  <div class="divider"></div>
+
+                  <div style="font-size:0.78rem;color:var(--muted);font-weight:600;margin-bottom:0.75rem;letter-spacing:0.04em;text-transform:uppercase">
+                    Placed Signatures
+                  </div>
+                  <div id="sig-list">
+                    <div style="font-size:0.78rem;color:var(--muted);text-align:center;padding:1rem">
+                      No signatures placed yet.<br>Click the document to add one.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AUDIT VIEW -->
+        <div id="view-audit" style="display:none">
+          <div class="content-header">
+            <div>
+              <div class="page-title">Audit Log</div>
+              <div class="page-sub">Complete immutable history of all document events</div>
+            </div>
+          </div>
+          <div class="content-body">
+            <div class="doc-table-wrap" style="padding:1.5rem;max-width:700px">
+              <div style="font-weight:600;color:var(--cream);margin-bottom:0.25rem;font-size:0.9rem">Event Timeline</div>
+              <div style="font-size:0.78rem;color:var(--muted);margin-bottom:1.5rem">All events are timestamped and cannot be modified</div>
+              <div class="timeline" id="audit-timeline"></div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /content -->
+    </div><!-- /shell -->
+  </div><!-- /page-app -->
+
+</div><!-- /app -->
+
+<!-- SEND LINK MODAL -->
+<div class="modal-overlay" id="send-link-modal">
+  <div class="modal">
+    <div class="modal-title">📤 Send Signing Link</div>
+    <div class="modal-sub">Generate a secure one-time link for your signer. No account required for them.</div>
+    <div class="field">
+      <label>Signer's Email</label>
+      <input type="email" id="signer-email" placeholder="signer@example.com">
+    </div>
+    <div class="field">
+      <label>Signer's Name (optional)</label>
+      <input type="text" id="signer-name" placeholder="John Smith">
+    </div>
+    <div id="generated-link-wrap" style="display:none">
+      <div class="divider"></div>
+      <div style="font-size:0.78rem;font-weight:600;color:var(--muted);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:0.5rem">Signing Link Generated</div>
+      <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:0.75rem;font-size:0.75rem;color:var(--gold);word-break:break-all" id="generated-link"></div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:0.5rem;width:100%" onclick="copyLink()">📋 Copy Link</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('send-link-modal')">Cancel</button>
+      <button class="btn btn-gold" onclick="generateLink()">Generate Link</button>
+    </div>
+  </div>
+</div>
+
+<!-- FINALIZE MODAL -->
+<div class="modal-overlay" id="finalize-modal">
+  <div class="modal">
+    <div class="modal-title">✅ Document Finalized</div>
+    <div class="modal-sub">Your signed PDF has been generated with all signatures embedded.</div>
+    <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:1.25rem;display:flex;align-items:center;gap:1rem">
+      <div style="font-size:2rem">📄</div>
+      <div>
+        <div style="font-weight:600;color:var(--cream)" id="finalize-filename">Document_signed.pdf</div>
+        <div style="font-size:0.75rem;color:var(--success);margin-top:0.25rem">✓ Signed · ✓ Audit trail logged</div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('finalize-modal')">Close</button>
+      <button class="btn btn-gold" onclick="downloadSigned()">⬇ Download Signed PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================
+// STATE
+// ============================================
+let currentUser = null;
+let currentView = 'dashboard';
+let documents = [];
+let signatureData = null; // captured sig as base64
+let placedSignatures = []; // [{id, x, y, w, h, page, data}]
+let currentDocId = null;
+let isDrawing = false;
+let canvas, ctx, lastX, lastY;
+
+const DEMO_USER = { id: 'u1', email: 'demo@signflow.com', full_name: 'Jane Doe' };
+
+const DEMO_DOCS = [
+  { id: 'd1', title: 'Employment Agreement', filename: 'employment_agreement.pdf', status: 'signed', signer_email: 'john@contractor.com', created_at: '2025-02-20T10:00:00Z', page_count: 3 },
+  { id: 'd2', title: 'NDA — Acme Corp', filename: 'nda_acme.pdf', status: 'sent', signer_email: 'ceo@acme.com', created_at: '2025-02-19T14:30:00Z', page_count: 2 },
+  { id: 'd3', title: 'Freelance Contract Q1', filename: 'freelance_q1.pdf', status: 'draft', signer_email: null, created_at: '2025-02-18T09:15:00Z', page_count: 4 },
+  { id: 'd4', title: 'Service Agreement 2025', filename: 'service_2025.pdf', status: 'signed', signer_email: 'ops@partner.io', created_at: '2025-02-15T11:00:00Z', page_count: 2 },
+];
+
+const DEMO_AUDIT = [
+  { id: 'a6', event_type: 'finalized', event_detail: 'Document finalized with 2 signature(s)', actor_email: 'demo@signflow.com', ip_address: '192.168.1.10', created_at: '2025-02-20T12:45:00Z' },
+  { id: 'a5', event_type: 'signed_via_link', event_detail: 'Document signed via public signing link', actor_email: 'john@contractor.com', ip_address: '10.0.1.45', created_at: '2025-02-20T12:30:00Z' },
+  { id: 'a4', event_type: 'signature_placed', event_detail: 'Signature placed on page 1', actor_email: 'john@contractor.com', ip_address: '10.0.1.45', created_at: '2025-02-20T12:28:00Z' },
+  { id: 'a3', event_type: 'link_sent', event_detail: 'Signing link sent to john@contractor.com', actor_email: 'demo@signflow.com', ip_address: '192.168.1.10', created_at: '2025-02-20T11:00:00Z' },
+  { id: 'a2', event_type: 'viewed', event_detail: null, actor_email: 'demo@signflow.com', ip_address: '192.168.1.10', created_at: '2025-02-20T10:05:00Z' },
+  { id: 'a1', event_type: 'uploaded', event_detail: "Document 'Employment Agreement' uploaded (3 pages)", actor_email: 'demo@signflow.com', ip_address: '192.168.1.10', created_at: '2025-02-20T10:00:00Z' },
+];
+
+// ============================================
+// AUTH
+// ============================================
+function doLogin() {
+  const email = document.getElementById('login-email').value;
+  const pass = document.getElementById('login-password').value;
+  if (!email || !pass) { showError('login-error', 'Please fill in all fields'); return; }
+  // Demo: accept any creds
+  currentUser = { ...DEMO_USER, email, full_name: email.split('@')[0].replace('.', ' ').replace(/\b\w/g, l => l.toUpperCase()) };
+  hideError('login-error');
+  initApp();
+  showPage('page-app');
+  showToast('Welcome back! 👋', 'success');
+}
+
+function doRegister() {
+  const name = document.getElementById('reg-name').value;
+  const email = document.getElementById('reg-email').value;
+  const pass = document.getElementById('reg-password').value;
+  if (!name || !email || !pass) { showError('reg-error', 'Please fill in all fields'); return; }
+  if (pass.length < 8) { showError('reg-error', 'Password must be at least 8 characters'); return; }
+  currentUser = { id: 'u-new', email, full_name: name };
+  hideError('reg-error');
+  initApp();
+  showPage('page-app');
+  showToast('Account created! Welcome to SignFlow ✨', 'success');
+}
+
+function doLogout() {
+  currentUser = null;
+  showPage('page-login');
+  showToast('Signed out successfully');
+}
+
+// ============================================
+// APP INIT
+// ============================================
+function initApp() {
+  documents = [...DEMO_DOCS];
+  const initials = currentUser.full_name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  document.getElementById('user-avatar').textContent = initials;
+  document.getElementById('user-display-name').textContent = currentUser.full_name;
+  document.getElementById('user-display-email').textContent = currentUser.email;
+  renderDashboard();
+  renderAudit();
+  initCanvas();
+}
+
+// ============================================
+// NAVIGATION
+// ============================================
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function switchView(view) {
+  currentView = view;
+  document.querySelectorAll('[id^="view-"]').forEach(v => v.style.display = 'none');
+  document.getElementById('view-' + view).style.display = 'block';
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('nav-' + view)?.classList.add('active');
+}
+
+// ============================================
+// DASHBOARD
+// ============================================
+function renderDashboard() {
+  const total = documents.length;
+  const signed = documents.filter(d => d.status === 'signed').length;
+  const sent = documents.filter(d => d.status === 'sent').length;
+  const draft = documents.filter(d => d.status === 'draft').length;
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-signed').textContent = signed;
+  document.getElementById('stat-pending').textContent = sent;
+  document.getElementById('stat-drafts').textContent = draft;
+  document.getElementById('doc-count').textContent = total + ' documents';
+
+  const tbody = document.getElementById('doc-table-body');
+  tbody.innerHTML = documents.map(doc => `
+    <tr>
+      <td><span class="doc-name"><span class="doc-icon">📄</span>${doc.title}</span></td>
+      <td><span class="status status-${doc.status}"><span class="status-dot"></span>${doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}</span></td>
+      <td style="color:var(--muted);font-size:0.8rem">${doc.signer_email || '—'}</td>
+      <td style="color:var(--muted);font-size:0.8rem">${formatDate(doc.created_at)}</td>
+      <td>
+        <div class="table-actions">
+          <button class="btn btn-ghost btn-sm" onclick="openDoc('${doc.id}')">Open</button>
+          ${doc.status === 'signed' ? `<button class="btn btn-gold btn-sm" onclick="downloadDoc('${doc.id}')">⬇ Download</button>` : ''}
+          <button class="btn btn-danger btn-sm" onclick="deleteDoc('${doc.id}')">✕</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openDoc(id) {
+  currentDocId = id;
+  const doc = documents.find(d => d.id === id);
+  document.getElementById('pdf-doc-name').textContent = '📄 ' + (doc?.filename || 'Document.pdf');
+  placedSignatures = [];
+  renderSigList();
+  clearPdfFields();
+  switchView('sign');
+}
+
+function deleteDoc(id) {
+  documents = documents.filter(d => d.id !== id);
+  renderDashboard();
+  showToast('Document deleted');
+}
+
+function downloadDoc(id) {
+  showToast('⬇ Downloading signed PDF...', 'success');
+}
+
+// ============================================
+// UPLOAD
+// ============================================
+let selectedFile = null;
+
+function handleFileSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (!file.type.includes('pdf')) { showToast('Only PDF files are accepted', 'error'); return; }
+  if (file.size > 10 * 1024 * 1024) { showToast('File exceeds 10MB limit', 'error'); return; }
+  selectedFile = file;
+  document.getElementById('preview-filename').textContent = file.name;
+  document.getElementById('preview-size').textContent = formatBytes(file.size);
+  document.getElementById('doc-title').value = file.name.replace('.pdf', '').replace(/[_-]/g, ' ');
+  document.getElementById('upload-preview').style.display = 'block';
+}
+
+function clearUpload() {
+  selectedFile = null;
+  document.getElementById('file-input').value = '';
+  document.getElementById('upload-preview').style.display = 'none';
+}
+
+function uploadDocument() {
+  if (!selectedFile) return;
+  const btn = document.getElementById('upload-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Uploading...';
+
+  setTimeout(() => {
+    const title = document.getElementById('doc-title').value || selectedFile.name.replace('.pdf', '');
+    const newDoc = {
+      id: 'd' + Date.now(),
+      title,
+      filename: selectedFile.name,
+      status: 'draft',
+      signer_email: null,
+      created_at: new Date().toISOString(),
+      page_count: 1,
+    };
+    documents.unshift(newDoc);
+    currentDocId = newDoc.id;
+    clearUpload();
+    renderDashboard();
+    btn.disabled = false;
+    btn.innerHTML = 'Upload & Continue to Sign →';
+    document.getElementById('pdf-doc-name').textContent = '📄 ' + newDoc.filename;
+    placedSignatures = [];
+    renderSigList();
+    clearPdfFields();
+    switchView('sign');
+    showToast('PDF uploaded successfully ✓', 'success');
+  }, 1200);
+}
+
+// ============================================
+// SIGNATURE CANVAS
+// ============================================
+function initCanvas() {
+  canvas = document.getElementById('sig-canvas');
+  ctx = canvas.getContext('2d');
+  ctx.strokeStyle = '#1a1510';
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  canvas.addEventListener('mousedown', startDraw);
+  canvas.addEventListener('mousemove', draw);
+  canvas.addEventListener('mouseup', stopDraw);
+  canvas.addEventListener('mouseleave', stopDraw);
+  canvas.addEventListener('touchstart', e => { e.preventDefault(); startDraw(e.touches[0]); }, { passive: false });
+  canvas.addEventListener('touchmove', e => { e.preventDefault(); draw(e.touches[0]); }, { passive: false });
+  canvas.addEventListener('touchend', stopDraw);
+}
+
+function startDraw(e) {
+  isDrawing = true;
+  const rect = canvas.getBoundingClientRect();
+  lastX = (e.clientX - rect.left) * (canvas.width / rect.width);
+  lastY = (e.clientY - rect.top) * (canvas.height / rect.height);
+}
+
+function draw(e) {
+  if (!isDrawing) return;
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+  const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+  ctx.beginPath();
+  ctx.moveTo(lastX, lastY);
+  ctx.lineTo(x, y);
+  ctx.stroke();
+  lastX = x; lastY = y;
+}
+
+function stopDraw() { isDrawing = false; }
+
+function clearCanvas() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  signatureData = null;
+}
+
+function captureSignature() {
+  signatureData = canvas.toDataURL('image/png');
+  showToast('Signature ready! Click the document to place it ✓', 'success');
+}
+
+function switchSigTab(tab) {
+  document.querySelectorAll('.sig-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('sig-draw-tab').style.display = tab === 'draw' ? 'block' : 'none';
+  document.getElementById('sig-type-tab').style.display = tab === 'type' ? 'block' : 'none';
+}
+
+function updateTypedPreview(val) {
+  document.getElementById('typed-preview').textContent = val || 'Your Name';
+}
+
+function captureTypedSignature() {
+  const name = document.getElementById('typed-sig').value;
+  if (!name.trim()) { showToast('Please type your name', 'error'); return; }
+
+  // Render text to canvas
+  const offCanvas = document.createElement('canvas');
+  offCanvas.width = 280; offCanvas.height = 80;
+  const offCtx = offCanvas.getContext('2d');
+  offCtx.fillStyle = 'white';
+  offCtx.fillRect(0, 0, 280, 80);
+  offCtx.fillStyle = '#1a1510';
+  offCtx.font = '48px Fraunces, serif';
+  offCtx.textBaseline = 'middle';
+  offCtx.fillText(name, 10, 40);
+  signatureData = offCanvas.toDataURL('image/png');
+  showToast('Signature ready! Click the document to place it ✓', 'success');
+}
+
+// ============================================
+// PDF SIGNATURE PLACEMENT
+// ============================================
+function placeSigField(e) {
+  if (!signatureData) {
+    showToast('⚠ Create a signature first, then click to place it', 'error');
+    return;
+  }
+
+  const wrap = document.getElementById('pdf-mock');
+  const rect = wrap.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  const sig = {
+    id: 's' + Date.now(),
+    x: x,
+    y: y,
+    w: 160,
+    h: 60,
+    page: 1,
+    data: signatureData,
+  };
+  placedSignatures.push(sig);
+  renderSigFields();
+  renderSigList();
+  signatureData = null;
+
+  // Update step
+  document.getElementById('step3').classList.add('done');
+  showToast('Signature placed ✓', 'success');
+}
+
+function renderSigFields() {
+  clearPdfFields();
+  const mock = document.getElementById('pdf-mock');
+  placedSignatures.forEach(sig => {
+    const el = document.createElement('div');
+    el.className = 'sig-field filled';
+    el.id = 'sigfield-' + sig.id;
+    el.style.left = sig.x + 'px';
+    el.style.top = sig.y + 'px';
+    el.style.width = sig.w + 'px';
+    el.style.height = sig.h + 'px';
+    const img = document.createElement('img');
+    img.src = sig.data;
+    el.appendChild(img);
+    mock.appendChild(el);
+  });
+}
+
+function clearPdfFields() {
+  document.querySelectorAll('.sig-field').forEach(el => el.remove());
+}
+
+function renderSigList() {
+  const list = document.getElementById('sig-list');
+  if (placedSignatures.length === 0) {
+    list.innerHTML = `<div style="font-size:0.78rem;color:var(--muted);text-align:center;padding:1rem">No signatures placed yet.<br>Click the document to add one.</div>`;
+    return;
+  }
+  list.innerHTML = placedSignatures.map((sig, i) => `
+    <div style="display:flex;align-items:center;gap:0.75rem;padding:0.6rem 0;border-bottom:1px solid var(--border)">
+      <img src="${sig.data}" style="width:60px;height:24px;object-fit:contain;background:white;border-radius:4px;border:1px solid var(--border2)">
+      <span style="font-size:0.78rem;color:var(--muted);flex:1">Page ${sig.page}</span>
+      <button class="btn btn-danger btn-sm" onclick="removeSig('${sig.id}')">✕</button>
+    </div>
+  `).join('');
+}
+
+function removeSig(id) {
+  placedSignatures = placedSignatures.filter(s => s.id !== id);
+  renderSigFields();
+  renderSigList();
+}
+
+function prevPage() {}
+function nextPage() {}
+
+// ============================================
+// FINALIZE
+// ============================================
+function finalizeDocument() {
+  if (placedSignatures.length === 0) {
+    showToast('⚠ Place at least one signature before finalizing', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('finalize-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Finalizing...';
+
+  setTimeout(() => {
+    // Update doc status
+    const doc = documents.find(d => d.id === currentDocId);
+    if (doc) {
+      doc.status = 'signed';
+      doc.signer_email = currentUser.email;
+    }
+    renderDashboard();
+
+    // Update steps
+    document.getElementById('step4').classList.add('done', 'active');
+
+    // Show audit
+    DEMO_AUDIT.unshift({
+      id: 'a-new-' + Date.now(),
+      event_type: 'finalized',
+      event_detail: `Document finalized with ${placedSignatures.length} signature(s)`,
+      actor_email: currentUser.email,
+      ip_address: '127.0.0.1',
+      created_at: new Date().toISOString(),
+    });
+    renderAudit();
+
+    btn.disabled = false;
+    btn.innerHTML = '✓ Finalize & Download';
+
+    const filename = doc ? doc.filename.replace('.pdf', '_signed.pdf') : 'document_signed.pdf';
+    document.getElementById('finalize-filename').textContent = filename;
+    openModal('finalize-modal');
+  }, 1800);
+}
+
+function downloadSigned() {
+  closeModal('finalize-modal');
+  showToast('⬇ Signed PDF downloaded ✓', 'success');
+}
+
+// ============================================
+// SEND LINK MODAL
+// ============================================
+function openSendLinkModal() {
+  document.getElementById('generated-link-wrap').style.display = 'none';
+  document.getElementById('signer-email').value = '';
+  document.getElementById('signer-name').value = '';
+  openModal('send-link-modal');
+}
+
+function generateLink() {
+  const email = document.getElementById('signer-email').value;
+  if (!email) { showToast('Please enter signer email', 'error'); return; }
+  const token = 'sk_' + Math.random().toString(36).substr(2, 32);
+  const link = `${window.location.origin}/sign/${token}`;
+  document.getElementById('generated-link').textContent = link;
+  document.getElementById('generated-link-wrap').style.display = 'block';
+
+  const doc = documents.find(d => d.id === currentDocId);
+  if (doc) { doc.status = 'sent'; doc.signer_email = email; }
+  renderDashboard();
+  showToast('Signing link generated ✓', 'success');
+}
+
+function copyLink() {
+  const link = document.getElementById('generated-link').textContent;
+  navigator.clipboard?.writeText(link).catch(() => {});
+  showToast('Link copied to clipboard ✓', 'success');
+}
+
+// ============================================
+// AUDIT LOG
+// ============================================
+const eventConfig = {
+  uploaded: { label: 'Document Uploaded', color: 'blue', icon: '📤' },
+  viewed: { label: 'Document Viewed', color: '', icon: '👁' },
+  link_sent: { label: 'Signing Link Sent', color: 'blue', icon: '🔗' },
+  signature_placed: { label: 'Signature Placed', color: '', icon: '✍️' },
+  signed_via_link: { label: 'Signed via Link', color: 'green', icon: '✅' },
+  finalized: { label: 'Document Finalized', color: 'green', icon: '🔒' },
+  expired: { label: 'Link Expired', color: 'red', icon: '⚠️' },
+};
+
+function renderAudit() {
+  const timeline = document.getElementById('audit-timeline');
+  timeline.innerHTML = DEMO_AUDIT.map((log, i) => {
+    const cfg = eventConfig[log.event_type] || { label: log.event_type, color: '', icon: '•' };
+    return `
+      <div class="timeline-item">
+        <div class="timeline-dot-col">
+          <div class="timeline-dot ${cfg.color}"></div>
+          ${i < DEMO_AUDIT.length - 1 ? '<div class="timeline-line"></div>' : ''}
+        </div>
+        <div class="timeline-body">
+          <div class="timeline-event">${cfg.icon} ${cfg.label}</div>
+          ${log.event_detail ? `<div class="timeline-detail">${log.event_detail}</div>` : ''}
+          <div class="timeline-meta">
+            <span>👤 ${log.actor_email || 'Anonymous'}</span>
+            <span>🌐 ${log.ip_address || 'Unknown'}</span>
+            <span>🕐 ${formatDateTime(log.created_at)}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ============================================
+// HELPERS
+// ============================================
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+let toastTimer;
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+function hideError(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+function formatDate(iso) {
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function formatDateTime(iso) {
+  return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+// Setup upload drag & drop
+document.addEventListener('DOMContentLoaded', () => {
+  const zone = document.getElementById('upload-zone');
+  if (!zone) return;
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) handleFileSelect({ target: { files: [file] } });
+  });
+
+  // Close modals on overlay click
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay) overlay.classList.remove('open');
+    });
+  });
+});
+</script>
+</body>
+</html>
